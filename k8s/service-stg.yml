@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mctl-planner
+  namespace: smtp-stg
+  labels:
+    app: mctl-planner
+spec:
+#  clusterIP: None 21.01.28 SWING MSA 고도화 프로젝트로 인한 환경설정 변경
+  ports:
+  - port: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: mctl-planner

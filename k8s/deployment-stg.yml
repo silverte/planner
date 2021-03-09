@@ -1,0 +1,90 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mctl-planner
+  namespace: smtp-stg
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mctl-planner
+    spec:
+      containers:
+      - name: mctl-planner
+        image: swgd.icp.skt.com:8500/smtp-stg/mctl-planner:1.0.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /infsw/whatap
+          name: apm-agent-volume
+        - mountPath: /etc/localtime
+          name: timezone-config
+        - mountPath: /applog/gclog
+          name: hostpath-gclog
+        - mountPath: /applog/heapdump
+          name: hostpath-heapdump
+        - mountPath: /applog
+          name: hostpath-applog
+        env:
+        - name: license
+          value: x220g0qru2jre-z5ds0jono871pv-z1kbbgqilrtltv
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: mcatalog-profile
+              key: active.profile
+        - name: MSA_MC_USER
+          valueFrom:
+            secretKeyRef:
+              name: database-prdctlg
+              key: user
+        - name: MSA_MC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-prdctlg
+              key: password
+        - name: JAVAOPTS
+          value: -Duser.timezone=Asia/Seoul -server -Xmx1536m -Xms1536m -XX:NewSize=512m -XX:MaxNewSize=512m -XX:MaxMetaspaceSize=192m -XX:MetaspaceSize=192m -XX:ParallelGCThreads=2 -XX:-UseAdaptiveSizePolicy -XX:+DisableExplicitGC -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintHeapAtGC -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/applog/heapdump/mctl-planner/
+        resources:
+          requests:
+            memory: 2Gi
+            cpu: 100m
+          limits:
+            memory: 2Gi
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 15
+          successThreshold: 1
+          timeoutSeconds: 15
+          periodSeconds: 10
+          failureThreshold: 10
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 90
+          successThreshold: 1
+          timeoutSeconds: 10
+          periodSeconds: 15
+          failureThreshold: 10
+      volumes:
+      - name: apm-agent-volume
+        hostPath:
+          path: /infsw/whatap
+      - name: timezone-config
+        hostPath:
+          path: /usr/share/zoneinfo/Asia/Seoul
+      - name: hostpath-gclog
+        hostPath:
+          path: /applog/gclog
+      - name: hostpath-heapdump
+        hostPath:
+          path: /applog/heapdump
+      - name: hostpath-applog
+        hostPath:
+          path: /applog
+

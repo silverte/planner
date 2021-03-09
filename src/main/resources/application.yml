@@ -1,0 +1,49 @@
+server:
+  port: 8080
+  tomcat:    accesslog:      enabled: true
+      directory: logs
+      pattern:  '%h %l %u %t "%r" %s %bbyte %Dms'
+    basedir: /applog/mctl-planner
+
+spring:
+  profiles:
+    active: prd
+    
+  application:
+    name: mctl-planner
+        
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+      
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health      
+    
+logging:
+  path: /applog/mctl-planner
+  file:
+    max-history: 60
+  level: 
+    com.sktelecom.swingmsa.mcatalog: DEBUG
+    org.hibernate.type: WARN
+
+swing:
+  io:
+    whitelist:
+      - "/api/v1"   
+
+info:
+  app:
+    name: mctl-planner
+    api-version: 1.0
+    title: Rule화 - Planner
+    desciprion: Rule화 - Planner
+    
+mybatis:
+  type-aliases-package: com.sktelecom.swingmsa.mcatalog.context.domain
+  mapper-locations: mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true       
